@@ -1,35 +1,66 @@
+'use client';
+import { useSearchParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
-const SocketClient = () => {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+interface Props {
+    socketInstance: WebSocket;
+  }
+
+  
+interface Message {
+    name: string;
+    text: string;
+    isSender: boolean;
+  }
+
+const SocketClient = (props: Props) => {
+  const [newSocket, setSocket] = useState<WebSocket>(props.socketInstance);
+  const searchParams = useSearchParams();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
+  const [UserName, setUserName] = useState(searchParams.get("name"));
 
   useEffect(() => {
     console.log("omgtop");
-    const newSocket = new WebSocket("ws://localhost:8080");
+    // setSocket(person.name);
+    // const newSocket = new WebSocket("ws://localhost:8080");
     //const newSocket = new WebSocket("ws://0.tcp.in.ngrok.io:17400");
 
-    newSocket.onopen = () => {
+    newSocket.onopen = (event) => {
         console.log('WebSocket connection established.');
         // Send initial message if needed: socket.send('Hello, server!');
       };
       
     newSocket.onmessage = (event) => {
         console.log('Received message from server:', event.data);
+        
+
+        const message = String(event.data);
+        const messageList = message.split("<->");
+        const userNameMessage = messageList[messageList.length -1];
+        const displayMessage = userNameMessage.split("|")[1]; //display message
+        console.log(userNameMessage);
+        console.log(displayMessage);
+        const recievedUserName = userNameMessage.split("|")[0];
+
+        
+        const isSenderValue = UserName === recievedUserName;
+
         setMessages((prevMessages) => {
-            if (prevMessages.includes(event.data)) {
-                return prevMessages; // Message already exists, no need to add again
-            }
-            return [...prevMessages,String(event.data)];
+            // if (prevMessages.includes(displayMessage)) {
+            //     return prevMessages; // Message already exists, no need to add again
+            // }
+            return [...prevMessages,{ name: recievedUserName, text: displayMessage, isSender : isSenderValue }];
         });
+        console.log(messages);
+
       };
       
       newSocket.onclose = () => {
         console.log('WebSocket connection closed.');
       };
 
-      setSocket(newSocket);
+    //   setSocket(newSocket);
       
       return () => {
           if (newSocket.readyState === 1) { // <-- This is important
@@ -39,9 +70,10 @@ const SocketClient = () => {
       };
   }, []);
 
+
   const sendMessage = (message: string) => {
-    if (socket) {
-      socket.send(message);
+    if (newSocket) {
+        newSocket.send(UserName +"|" +  message);
     }
   };
 
@@ -56,13 +88,14 @@ const SocketClient = () => {
           
 
         {messages.map((messagea,index) => (
-                    <div className="chat chat-start " key={index}>
-                    <div className="chat-header" >
-                        {}
-                    </div>
-                    <div className="chat-bubble">{messagea}</div>
-                    </div>
-            ))}
+            <div className= {`chat ${messagea.isSender ? 'chat-end' : 'chat-start'}`} key={index}>
+            <div className="chat-header" >
+                {messagea.name}
+            </div>
+            <div className="chat-bubble">{messagea.text}</div>
+            </div>
+      
+        ))}
 
 
         </div>

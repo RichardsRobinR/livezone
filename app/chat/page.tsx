@@ -1,14 +1,13 @@
-'use client';
 import React from 'react'
-import MyComponent from './connect';
 import SocketClient from './SocketClient';
+import Connect from './connect';
 
 const chatPage = () => {
+  
   return (
     // <button className="btn" onClick={SocketClient}>Button</button>
     <div>
-        <SocketClient/>
-        {/* <MyComponent/> */}
+        <Connect/>
     </div>
 
   )
