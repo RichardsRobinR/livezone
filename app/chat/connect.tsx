@@ -14,8 +14,8 @@ const Connect = () => {
         // const newSocket = new WebSocket("ws://localhost:8080");
 
         function setSocketUrl() {
-           // setSocket(new WebSocket("ws://localhost:8080"))
-            setSocket(new WebSocket("wss://4f6e-106-193-35-19.ngrok-free.app"))
+           setSocket(new WebSocket("ws://localhost:8080"))
+            //setSocket(new WebSocket("wss://4f6e-106-193-35-19.ngrok-free.app"))
         }
 
         setSocketUrl();

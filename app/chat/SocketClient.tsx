@@ -1,6 +1,11 @@
 'use client';
+import CustomNavbar from "@/components/customNavbar";
 import { useSearchParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
+
+// react-toastify
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Props {
     socketInstance: WebSocket;
@@ -19,6 +24,7 @@ const SocketClient = (props: Props) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [UserName, setUserName] = useState(searchParams.get("name"));
+  const notify = () => toast.info("New User Connected");
 
   useEffect(() => {
     console.log("omgtop");
@@ -37,21 +43,29 @@ const SocketClient = (props: Props) => {
 
         const message = String(event.data);
         const messageList = message.split("<->");
+
+
         const userNameMessage = messageList[messageList.length -1];
         const displayMessage = userNameMessage.split("|")[1]; //display message
         console.log(userNameMessage);
         console.log(displayMessage);
         const recievedUserName = userNameMessage.split("|")[0];
-
         
-        const isSenderValue = UserName === recievedUserName;
 
-        setMessages((prevMessages) => {
-            // if (prevMessages.includes(displayMessage)) {
-            //     return prevMessages; // Message already exists, no need to add again
-            // }
-            return [...prevMessages,{ name: recievedUserName, text: displayMessage, isSender : isSenderValue }];
-        });
+        if (displayMessage != undefined) {
+            const isSenderValue = UserName === recievedUserName;
+            setMessages((prevMessages) => {
+                // if (prevMessages.includes(displayMessage)) {
+                //     return prevMessages; // Message already exists, no need to add again
+                // }
+                return [...prevMessages,{ name: recievedUserName, text: displayMessage, isSender : isSenderValue }];
+            });
+        } else {
+           notify();
+        }
+        
+
+       
         console.log(messages);
 
       };
@@ -81,10 +95,27 @@ const SocketClient = (props: Props) => {
     setInputText(e.target.value);
   };
 
+
+  const onKeyDown = (e : any) => {
+    if (e.keyCode === 13) {
+        messageHandle();
+      }
+  }
+
+  const messageHandle = () => {
+    sendMessage(inputText) 
+    setInputText("")
+  }
+
   return (
     <div className="flex flex-col h-screen">
-      <div className="flex-1 p-6 overflow-y-auto">
-        <div id="chatMessages" className="flex flex-col">
+
+    <CustomNavbar/>
+
+
+      <div className="flex-1 p-6 overflow-y-auto  bg-primary-content ">
+        <ToastContainer />
+        <div id="chatMessages" className="flex flex-col ">
           
 
         {messages.map((messagea,index) => (
@@ -92,7 +123,7 @@ const SocketClient = (props: Props) => {
             <div className="chat-header" >
                 {messagea.name}
             </div>
-            <div className="chat-bubble">{messagea.text}</div>
+            <div className="chat-bubble chat-bubble-secondary">{messagea.text}</div>
             </div>
       
         ))}
@@ -101,10 +132,18 @@ const SocketClient = (props: Props) => {
         </div>
       </div>
       <div className="join">
-        <input className="input input-bordered join-item w-full " value={inputText} onChange={handleChange} placeholder="Enter your message" type="text"/>
-        <button className="btn join-item rounded-r-full" onClick={() => {sendMessage(inputText)
-        setInputText("")
-        }}>Send</button>
+        <input className="input input-bordered join-item w-full " onKeyDown={onKeyDown} value={inputText} onChange={handleChange}  placeholder="Enter your message" type="text"/>
+        <button className="btn join-item   "  onClick={messageHandle}>
+        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(45)">
+
+            <g id="SVGRepo_bgCarrier" stroke-width="0"/>
+
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <g id="SVGRepo_iconCarrier"> <path d="M20 4L13 21L10 14M20 4L12 7.29412M20 4L10 14M10 14L3 11L7 9.35294" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/> </g>
+
+            </svg>
+        </button>
         </div>
 </div>
 
